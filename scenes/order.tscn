@@ -1,0 +1,15 @@
+[gd_scene load_steps=3 format=3 uid="uid://c2cw5pk0nusen"]
+
+[ext_resource type="Script" path="res://scripts/order.gd" id="1_60hsh"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_epoa2"]
+
+[node name="Order" type="Node2D"]
+script = ExtResource("1_60hsh")
+
+[node name="CommandLabel" type="Label" parent="."]
+offset_right = 40.0
+offset_bottom = 23.0
+label_settings = SubResource("LabelSettings_epoa2")
+horizontal_alignment = 1
+vertical_alignment = 1
