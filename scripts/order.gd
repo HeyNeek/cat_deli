@@ -1,5 +1,7 @@
 extends Node2D
 
+signal order_completed
+
 @onready var command_label = $CommandLabel
 
 #this will be so the char in the command can be translated to a godot input binding
@@ -16,11 +18,11 @@ var bread_command = "DLRU"
 #input commands for different meats
 var meat_array_dictionary = [
 	{
-		"name": "turkey",
+		"name": "Turkey",
 		"command": "UDUDUD"
 	},
 	{
-		"name": "ham",
+		"name": "Ham",
 		"command": "UDUDUD"
 	},
 ]
@@ -35,28 +37,32 @@ var cheese_array_dictionary = [
 		"name": "Swiss",
 		"command": "DRDR"
 	},
+	{
+		"name": "Pepper Jack",
+		"command": "DRDR"
+	},
 ]
 
 #input commands for different toppings
 var toppings_array_dictionary = [
 	{
-		"name": "mayo",
+		"name": "Mayo",
 		"command": "LRLR"
 	},
 	{
-		"name": "mustard",
+		"name": "Mustard",
 		"command": "LRLR"
 	},
 	{
-		"name": "lettuce",
+		"name": "Lettuce",
 		"command": "UDRUDR"
 	},
 	{
-		"name": "tomato",
+		"name": "Tomato",
 		"command": "UDLUDLUDL"
 	},
 	{
-		"name": "pickle",
+		"name": "Pickle",
 		"command": "UDRUD"
 	},
 ]
@@ -65,9 +71,11 @@ var toppings_array_dictionary = [
 var is_current_sandwich_done = false
 
 #variables to randomize the sandwich by meat, cheese, and num of toppings
-var current_meat
-var current_cheese
-var amount_of_toppings
+var random_meat_index = randi_range(0, meat_array_dictionary.size() - 1)
+var random_cheese_index = randi_range(0, cheese_array_dictionary.size() - 1)
+
+var random_toppings_index_arr = []
+var random_for_loop_length = randi_range(0, toppings_array_dictionary.size() - 1)
 
 #step variables that keep track at where the user is at in the creation
 #of the sandwich
@@ -77,18 +85,32 @@ var current_meat_step = 0
 var current_cheese_step = 0
 var current_topping_step = 0
 
+func _ready():
+	populate_toppings()
+
+#there may be something wrong with having this in _process idk
+#update: actually it had more to do with putting an await call in here
 func _process(_delta):
 	if is_current_sandwich_done == false:
 		make_sandwich()
 	else:
-		command_label.text = "Sandwich complete!"
-		await get_tree().create_timer(1).timeout
+		order_completed.emit()
+		
 		is_current_sandwich_done = false
 		current_sandwich_step = 1
 		current_bread_step = 0
 		current_meat_step = 0
 		current_cheese_step = 0
 		current_topping_step = 0
+		random_meat_index = randi_range(0, meat_array_dictionary.size() - 1)
+		random_cheese_index = randi_range(0, cheese_array_dictionary.size() - 1)
+
+#this func is to randomly populate the toppings that go in the sandwich, but I need
+#to add validation to make sure we dont get repeat toppings
+func populate_toppings():
+	for index in random_for_loop_length:
+		random_toppings_index_arr.append(toppings_array_dictionary[randi_range(0, toppings_array_dictionary.size() - 1)])
+	print(random_toppings_index_arr)
 
 func cut_bread():
 	var current_bread_command
@@ -107,12 +129,12 @@ func cut_bread():
 
 func put_meat():
 	var current_meat_command
-	var meat_command_length = meat_array_dictionary[0].command.length()
-	print(meat_command_length)
+	var meat_name = meat_array_dictionary[random_meat_index].name
+	var meat_command_length = meat_array_dictionary[random_meat_index].command.length()
 	
 	if current_meat_step < meat_command_length:
-		current_meat_command = meat_array_dictionary[0].command[current_meat_step]
-		command_label.text = "Current meat Command: " + current_meat_command
+		current_meat_command = meat_array_dictionary[random_meat_index].command[current_meat_step]
+		command_label.text = "Current " + meat_name + " Command: " + current_meat_command
 	else:
 		current_sandwich_step += 1
 	
@@ -125,12 +147,12 @@ func put_meat():
 
 func put_cheese():
 	var current_cheese_command
-	var cheese_command_length = cheese_array_dictionary[0].command.length()
-	print(cheese_command_length)
+	var cheese_name = cheese_array_dictionary[random_cheese_index].name
+	var cheese_command_length = cheese_array_dictionary[random_cheese_index].command.length()
 	
 	if current_cheese_step < cheese_command_length:
-		current_cheese_command = cheese_array_dictionary[0].command[current_cheese_step]
-		command_label.text = "Current cheese Command: " + current_cheese_command
+		current_cheese_command = cheese_array_dictionary[random_cheese_index].command[current_cheese_step]
+		command_label.text = "Current " + cheese_name + " Command: " + current_cheese_command
 	else:
 		current_sandwich_step += 1
 	
@@ -143,12 +165,12 @@ func put_cheese():
 
 func put_toppings():
 	var current_topping_command
+	var topping_name = toppings_array_dictionary[0].name
 	var topping_command_length = toppings_array_dictionary[0].command.length()
-	print(topping_command_length)
 	
 	if current_topping_step < topping_command_length:
 		current_topping_command = toppings_array_dictionary[0].command[current_topping_step]
-		command_label.text = "Current topping Command: " + current_topping_command
+		command_label.text = "Current " + topping_name + " Command: " + current_topping_command
 	else:
 		current_sandwich_step += 1
 	

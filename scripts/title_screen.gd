@@ -6,7 +6,7 @@ extends Control
 @onready var quit_button = $QuitButton
 
 func _on_story_button_pressed():
-	pass
+	get_tree().change_scene_to_packed(story_scene)
 
 func _on_quit_button_pressed():
 	get_tree().quit()

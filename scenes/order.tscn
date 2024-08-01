@@ -3,6 +3,7 @@
 [ext_resource type="Script" path="res://scripts/order.gd" id="1_60hsh"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_epoa2"]
+font_size = 48
 
 [node name="Order" type="Node2D"]
 script = ExtResource("1_60hsh")
