@@ -83,6 +83,7 @@ var current_sandwich_step = 1
 var current_bread_step = 0
 var current_meat_step = 0
 var current_cheese_step = 0
+var current_topping_index = 0
 var current_topping_step = 0
 
 func _ready():
@@ -90,6 +91,8 @@ func _ready():
 
 #there may be something wrong with having this in _process idk
 #update: actually it had more to do with putting an await call in here
+#update 2: maybe it would make sense to destroy this node after we emit the signal rather than
+#reinitializing everything? idk
 func _process(_delta):
 	if is_current_sandwich_done == false:
 		make_sandwich()
@@ -101,7 +104,13 @@ func _process(_delta):
 		current_bread_step = 0
 		current_meat_step = 0
 		current_cheese_step = 0
+		current_topping_index = 0
 		current_topping_step = 0
+		
+		random_toppings_index_arr = []
+		random_for_loop_length = randi_range(0, toppings_array_dictionary.size() - 1)
+		populate_toppings()
+		
 		random_meat_index = randi_range(0, meat_array_dictionary.size() - 1)
 		random_cheese_index = randi_range(0, cheese_array_dictionary.size() - 1)
 
@@ -109,7 +118,10 @@ func _process(_delta):
 #to add validation to make sure we dont get repeat toppings
 func populate_toppings():
 	for index in random_for_loop_length:
-		random_toppings_index_arr.append(toppings_array_dictionary[randi_range(0, toppings_array_dictionary.size() - 1)])
+		var random_index = randi_range(1, toppings_array_dictionary.size() - 1)
+		if !random_toppings_index_arr.has(random_index):
+			random_toppings_index_arr.append(random_index)
+	
 	print(random_toppings_index_arr)
 
 func cut_bread():
@@ -164,15 +176,26 @@ func put_cheese():
 		current_cheese_step += 1
 
 func put_toppings():
+	#the way Im currently accessing the random toppings is very ugly
+	#should probably just add in the whole object in the randomized topping array
+	#rather than getting the index and doing a nested arr call idk
+	if current_topping_index == random_toppings_index_arr.size():
+		print("finished putting on toppings")
+		current_sandwich_step += 1
+		return
+	
 	var current_topping_command
-	var topping_name = toppings_array_dictionary[0].name
-	var topping_command_length = toppings_array_dictionary[0].command.length()
+	var topping_name = toppings_array_dictionary[random_toppings_index_arr[current_topping_index]].name
+	var topping_command_length = toppings_array_dictionary[random_toppings_index_arr[current_topping_index]].command.length()
 	
 	if current_topping_step < topping_command_length:
-		current_topping_command = toppings_array_dictionary[0].command[current_topping_step]
+		current_topping_command = toppings_array_dictionary[random_toppings_index_arr[current_topping_index]].command[current_topping_step]
 		command_label.text = "Current " + topping_name + " Command: " + current_topping_command
-	else:
-		current_sandwich_step += 1
+	elif current_topping_step == topping_command_length && current_topping_index < random_toppings_index_arr.size():
+		print("finished topping")
+		current_topping_index += 1
+		current_topping_step = 0
+		return
 	
 	var current_topping_input_check
 	if current_topping_step < topping_command_length:
@@ -180,6 +203,7 @@ func put_toppings():
 	
 	if current_topping_input_check && Input.is_action_just_pressed(current_topping_input_check):
 		current_topping_step += 1
+		print(current_topping_command)
 
 func make_sandwich():
 	if current_sandwich_step == 1:
